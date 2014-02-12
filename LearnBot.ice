@@ -6,6 +6,7 @@ module LearnBotModule
 	interface LearnBot
 	{
 		string command(string c);
+		void shutdown();
 	};
 };
   

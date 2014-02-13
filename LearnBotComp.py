@@ -8,8 +8,9 @@ import time
 import json
 from collections import namedtuple
 
+os.chdir("/home/pi/lernbot-core/")
 
-Ice.loadSlice("/home/pi/lernbot-core/LearnBot.ice")
+Ice.loadSlice("LearnBot.ice")
 import LearnBotModule
 
 class LearnBotHandler (threading.Thread):

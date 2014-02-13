@@ -9,7 +9,7 @@ import json
 from collections import namedtuple
 
 
-Ice.loadSlice("LearnBot.ice")
+Ice.loadSlice("/home/pi/lernbot-core/LearnBot.ice")
 import LearnBotModule
 
 class LearnBotHandler (threading.Thread):

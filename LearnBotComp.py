@@ -16,17 +16,18 @@ class LearnBotHandler (threading.Thread):
 	def __init__(self):
 		threading.Thread.__init__(self)
 		#Apertura del puerto serie donde está conectada la placa arduino
-		self.arduino = serial.Serial('/dev/ttyACM0', baudrate=115200, bytesize=8, parity='N', stopbits=1, timeout=1)
+		self.arduino = serial.Serial('/dev/ttyAMA0', baudrate=115200, bytesize=8, parity='N', stopbits=1, timeout=1)
 		self.arduino.close()
 		self.arduino.open()
 		#Espera 3 segundos
 		print("Preparing port ...")
-		time.sleep(3)
+		time.sleep(1)
 		if self.arduino.isOpen():
-			print("COM Port is opened.")
+			print("COM Port is open.")
 		else:
 			raise 'pene'
 		self.output = None
+		self.command("?-1?")
 	def run(self):
 		while 1:
 			time.sleep(1)
@@ -39,6 +40,10 @@ class LearnBotHandler (threading.Thread):
 					return response.decode("UTF-8")
 		else:
 			return ''
+	def shutdown(self):
+		self.command("?-2?")
+		import subprocess
+		subprocess.call(["shutdown", "-h", "now"])
 
 
 class LearnBotI (LearnBotModule.LearnBot):
@@ -46,6 +51,8 @@ class LearnBotI (LearnBotModule.LearnBot):
 		self.handler = _handler
 	def command(self, c, current=None):
 		return self.handler.command(c)
+	def shutdown(self, current=None):
+		self.handler.shutdown()
 
 
 

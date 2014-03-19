@@ -8,25 +8,31 @@ class MiClase(LearnBotClient.Client):
 	def code(self):
 		self.setVel(0,1,0,1)
 		while True:
-			lines = self.getLines()
+			light = self.getLDR()
 
-			izq = lines['LEFT1'].value
-			der = lines['RIGHT1'].value
-			cen = (lines['LEFT2'].value + lines['RIGHT2'].value) / 2
+			#print light
+			valores = [ light['FRONT'].value, light['BACK'].value, light['LEFT'].value, light['RIGHT'].value ]
+			print valores
+			maximum = max(valores)
 			
-
-			if cen < 700:
-				self.setVel(70,1,70,1)
-				#print 'frente'
-			else:
-				if izq > der:
-					#print 'der'
-					self.setVel(0,1,70,1)
+			if maximum > 200:
+				print maximum
+				if light['FRONT'].value == maximum:
+					self.setVel(200,1,200,1)
+					print 'frente'
+				elif light['LEFT'].value == maximum:
+					self.setVel(200,1,200,-1)
+					print 'izq'
+				elif light['RIGHT'].value == maximum:
+					self.setVel(200,-1,200,1)
+					print 'der'
 				else:
-					#print 'izq'
-					self.setVel(70,1,0,1)
+					self.setVel(200,1,200,-1)
+					print 'b'
+			else:
+				self.setVel(0,1,0,1)
 			
-			#print izq, cen, der
+
 			time.sleep(0.1)
 
 

@@ -129,7 +129,30 @@ class Client(Ice.Application):
 		return ret
 
 	def getLDR(self):
-		return self.sendCommand("?2?")
+		r = self.sendCommand("?2?")
+		ret = dict()
+
+		front = LightData()
+		front.value = r.LDR_FRONT.VAL
+		ret['FRONT'] = front
+		ret['DEL'] = front
+
+		back = LightData()
+		back.value = r.LDR_BACK.VAL
+		ret['BACK'] = back
+		ret['TRA'] = back
+
+		left = LightData()
+		left.value = r.LDR_LEFT.VAL
+		ret['LEFT'] = left
+		ret['IZQ'] = left
+
+		right = LightData()
+		right.value = r.LDR_RIGHT.VAL
+		ret['RIGHT'] = right
+		ret['DER'] = right
+
+		return ret
 
 	def setVel(self, rightVel, rightDir, leftVel, leftDir):
 		rV, rD, lV, lD = nativeVelocity(rightVel, rightDir, leftVel, leftDir)

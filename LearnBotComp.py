@@ -26,7 +26,7 @@ class LearnBotHandler (threading.Thread):
 		if self.arduino.isOpen():
 			print("COM Port is open.")
 		else:
-			raise 'pene'
+			raise "Can't open port"
 		self.output = None
 		self.command("?-1?")
 	def run(self):

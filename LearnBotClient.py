@@ -14,8 +14,21 @@ signal.signal(signal.SIGINT, signal.SIG_DFL)
 
 from learnbotMisc import *
 
-
 ic = None
+
+class SonarData(object):
+	def __init__(self):
+		self.distance = 0
+		self.height = 0
+		self.angle = 0
+
+class LineData(object):
+	def __init__(self):
+		self.value = 0
+
+class LightData(object):
+	def __init__(self):
+		self.value = 0
 
 class Client(Ice.Application):
 	def __init__(self, clase):
@@ -36,7 +49,7 @@ class Client(Ice.Application):
 		# Remote object connection
 		try:
 			baseStr = self.communicator().stringToProxy(proxyString)
-			print baseStr
+			#print baseStr
 			self.learnbotPrx = LearnBotModule.LearnBotPrx.checkedCast(baseStr)
 		except:
 			print 'Cannot connect to the remote object.'
@@ -46,7 +59,7 @@ class Client(Ice.Application):
 		
 	def sendCommand(self, command):
 		string = self.learnbotPrx.command(command.encode("us-ascii"))
-		print string
+		#print string
 		return self.json2obj(string)
 
 	def json2obj(self, response):
@@ -56,28 +69,81 @@ class Client(Ice.Application):
 	### API
 	###
 	def getSonars(self):
-		return self.sendCommand("?0?")
+		r = self.sendCommand("?0?")
+		ret = dict()
+		
+		left = SonarData()
+		left.distance = 0.01 * r.SLEFT.VALUES[0]
+		left.height = 0.05
+		left.angle = r.SLEFT.DEGREES
+		ret['LEFT'] = left
+		ret['IZQ'] = left
+
+		right = SonarData()
+		right.distance = 0.01 * r.SRIGHT.VALUES[0]
+		right.height = 0.05
+		right.angle = r.SRIGHT.DEGREES
+		ret['RIGHT'] = right
+		ret['DER'] = right
+
+		back = SonarData()
+		back.distance = 0.01 * r.SBACK.VALUES[0]
+		back.height = 0.05
+		back.angle = r.SBACK.DEGREES
+		ret['BACK'] = back
+		ret['TRA'] = back
+
+		front = SonarData()
+		front.distance = 0.01 * r.SFRONT.VALUES[0]
+		front.height = 0.05
+		front.angle = r.SFRONT.DEGREES
+		ret['FRONT'] = front
+		ret['DEL'] = front
+
+		return ret
 	
 	def getLines(self):
-		return self.sendCommand("?1?")
-		
+		r =  self.sendCommand("?1?")
+		ret = dict()
+
+		left1 = LineData()
+		left1.value = r.LINE_LEFT_2.VAL
+		ret['LEFT1'] = left1
+		ret['IZQ1'] = left1
+
+		right1 = LineData()
+		right1.value = r.LINE_RIGHT_2.VAL
+		ret['RIGHT1'] = right1
+		ret['DER1'] = right1
+
+		left2 = LineData()
+		left2.value = r.LINE_LEFT_1.VAL
+		ret['LEFT2'] = left2
+		ret['IZQ2'] = left2
+
+		right2 = LineData()
+		right2.value = r.LINE_RIGHT_1.VAL
+		ret['RIGHT2'] = right2
+		ret['DER2'] = right2
+
+		return ret
+
 	def getLDR(self):
 		return self.sendCommand("?2?")
 
-	def setVel(self, advance, steer):
-		leftVel, leftDir, rightVel, rightDir = estimateMotorsFromVelocity(advance, steer)
+	def setVel(self, rightVel, rightDir, leftVel, leftDir):
+		rV, rD, lV, lD = nativeVelocity(rightVel, rightDir, leftVel, leftDir)
 		speedReq = ''
 		speedReq += 'M'
-		speedReq += generateNumberString(rightVel, 3, 255)
+		speedReq += generateNumberString(rV, 3, 255)
 		speedReq += ':'
-		speedReq += generateNumberString(rightDir, 1, 1)
+		speedReq += generateNumberString(rD, 1, 1)
 		speedReq += ':'
-		speedReq += generateNumberString(leftVel, 3, 255)
+		speedReq += generateNumberString(lV, 3, 255)
 		speedReq += ':'
-		speedReq += generateNumberString(leftDir, 1, 1)
+		speedReq += generateNumberString(lD, 1, 1)
 		speedReq += 'M'
 		return self.sendCommand(speedReq)
-		
 		
 		
 		

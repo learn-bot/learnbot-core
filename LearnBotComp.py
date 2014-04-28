@@ -8,7 +8,8 @@ import time
 import json
 from collections import namedtuple
 
-os.chdir("/home/pi/lernbot-core/")
+import os
+os.chdir("/home/pi/learnbot-core/")
 
 Ice.loadSlice("LearnBot.ice")
 import LearnBotModule
@@ -62,15 +63,21 @@ class Server(Ice.Application):
 		status = 0
 		try:
 			self.shutdownOnInterrupt()
+			print 'Run handler'
 			handler = LearnBotHandler()
+			print 'handler activated'
 			handler.start()
 			adapter = self.communicator().createObjectAdapter('LearnBot')
+			print adapter
 			adapter.add(LearnBotI(handler), self.communicator().stringToIdentity('learnbot'))
+			print self.communicator().stringToIdentity('learnbot')
 			adapter.activate()
 			self.communicator().waitForShutdown()
 		except:
 			traceback.print_exc()
 			status = 1
+
+		print 'aaaa'
 
 		if self.communicator():
 			try:

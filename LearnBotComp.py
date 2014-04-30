@@ -28,6 +28,7 @@ class LearnBotHandler (threading.Thread):
 		self.height = 240
 		self.camera.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, self.width)
 		self.camera.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, self.height)
+		ret, frame = self.camera.read()
 
 		# Espera 3 segundos
 		print("Preparing port ...")

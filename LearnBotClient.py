@@ -168,6 +168,8 @@ class Client(Ice.Application):
 		speedReq += 'M'
 		return self.sendCommand(speedReq)
 		
+	def getImage(self, width=80, height=60):
+		return map(ord, self.learnbotPrx.getImageFromRobot(width, height))
 		
 		
 

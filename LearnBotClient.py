@@ -61,6 +61,7 @@ class Client(Ice.Application):
 				sys.exit(1)
 		else:
 			print 'simulado'
+			# CONNECT TO SIMULATED DIFFERENTIAL ROBOT
 			try:
 				proxyString = ic.getProperties().getProperty('DifferentialRobotProxy')
 				print 'DifferentialRobotProxy:', proxyString
@@ -73,7 +74,10 @@ class Client(Ice.Application):
 			except:
 				print 'Cannot get DifferentialRobotProxy property.'
 				sys.exit(1)
-
+			# CONNECT TO SIMULATED ULTRASOUNDS
+			#
+			#
+			#
 		self.code()
 		
 	def sendCommand(self, command):

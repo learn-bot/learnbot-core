@@ -16,7 +16,6 @@ class MiClase(LearnBotClient.Client):
 			der = lines['RIGHT1'].value
 			cen = (lines['LEFT2'].value + lines['RIGHT2'].value) / 2
 			
-
 			velg = 100
 			velf = 255
 			if cen < 700:
@@ -29,9 +28,6 @@ class MiClase(LearnBotClient.Client):
 				else:
 					print 'izq'
 					self.setVel(velg,1,velg,-1)
-			
-			#print izq, cen, der
-			time.sleep(0.1)
 
 
 miclase = MiClase()

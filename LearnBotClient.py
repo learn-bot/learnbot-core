@@ -6,8 +6,11 @@ import json
 from collections import namedtuple
 
 Ice.loadSlice("LearnBot.ice")
+Ice.loadSlice("DifferentialRobot.ice")
 
 import LearnBotModule
+import RoboCompDifferentialRobot
+
 
 import signal
 signal.signal(signal.SIGINT, signal.SIG_DFL)
@@ -39,21 +42,37 @@ class Client(Ice.Application):
 		self.shutdownOnInterrupt()
 		ic = self.communicator()
 
+		self.realLearnbot = True
 		# Get connection config
 		try:
 			proxyString = ic.getProperties().getProperty('LearnBotProxy')
+			if len(proxyString)<4: self.realLearnbot = False
 		except:
 			print 'Cannot get LearnBotProxy property.'
-			sys.exit(1)
+			self.realLearnbot = False
 
-		# Remote object connection
-		try:
-			baseStr = self.communicator().stringToProxy(proxyString)
-			#print baseStr
-			self.learnbotPrx = LearnBotModule.LearnBotPrx.checkedCast(baseStr)
-		except:
-			print 'Cannot connect to the remote object.'
-			sys.exit(1)
+		if self.realLearnbot:
+			print 'real'
+			try:
+				baseStr = self.communicator().stringToProxy(proxyString)
+				self.learnbotPrx = LearnBotModule.LearnBotPrx.checkedCast(baseStr)
+			except:
+				print 'Cannot connect to the remote object.'
+				sys.exit(1)
+		else:
+			print 'simulado'
+			try:
+				proxyString = ic.getProperties().getProperty('DifferentialRobotProxy')
+				print 'DifferentialRobotProxy:', proxyString
+				try:
+					baseStr = self.communicator().stringToProxy(proxyString)
+					self.differentialrobotPrx = RoboCompDifferentialRobot.DifferentialRobotPrx.checkedCast(baseStr)
+				except:
+					print 'Cannot connect to the remote object.'
+					sys.exit(1)
+			except:
+				print 'Cannot get DifferentialRobotProxy property.'
+				sys.exit(1)
 
 		self.code()
 		
@@ -155,18 +174,27 @@ class Client(Ice.Application):
 		return ret
 
 	def setVel(self, rightVel, rightDir, leftVel, leftDir):
-		rV, rD, lV, lD = nativeVelocity(rightVel, rightDir, leftVel, leftDir)
-		speedReq = ''
-		speedReq += 'M'
-		speedReq += generateNumberString(rV, 3, 255)
-		speedReq += ':'
-		speedReq += generateNumberString(rD, 1, 1)
-		speedReq += ':'
-		speedReq += generateNumberString(lV, 3, 255)
-		speedReq += ':'
-		speedReq += generateNumberString(lD, 1, 1)
-		speedReq += 'M'
-		return self.sendCommand(speedReq)
+		if self.realLearnbot:
+			rV, rD, lV, lD = nativeVelocity(rightVel, rightDir, leftVel, leftDir)
+			speedReq = ''
+			speedReq += 'M'
+			speedReq += generateNumberString(rV, 3, 255)
+			speedReq += ':'
+			speedReq += generateNumberString(rD, 1, 1)
+			speedReq += ':'
+			speedReq += generateNumberString(lV, 3, 255)
+			speedReq += ':'
+			speedReq += generateNumberString(lD, 1, 1)
+			speedReq += 'M'
+			return self.sendCommand(speedReq)
+		else:
+			R = float(rightVel)
+			if rightDir < 0: R *= 1
+			L = float(leftVel)
+			if leftDir < 0: L *= 1
+			avance = (L+R)/2
+			giro = (L-R)/((L+R)/2)
+			self.differentialrobotPrx.setSpeedBase(avance, giro)
 		
 	def getImage(self, width=80, height=60):
 		return map(ord, self.learnbotPrx.getImageFromRobot(width, height))

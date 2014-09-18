@@ -1,21 +1,33 @@
 <innerModel>
 	<transform id="world">
-		<plane id="floor" ny="1" size="10000,10000,10" repeat="1" texture="#555555"/>
-		<transform id="rawOdometry">
-			<translation id="geometricCenterRaw" tx="0" ty="0" tz="-100">
-				<mesh id="rawOdometry_mesh" file="/home/robocomp/robocomp/files/osgModels/robex/platform.osg" scale="100" rx="1.57" />
-			</translation>
-		</transform>
+		<plane id="floor" ny="1" size="5000,5000,10" repeat="1" texture="#555555"/>
+		<plane id="cossssa" ny="1" size="350,350,10" pz="2000" py="10" repeat="1" texture="#ffffff"/>
+		
+		<plane id="w1" nz="1" size="5000,700,10" px="0" py="350" pz="2500" repeat="1" texture="#555555"/>
+		<plane id="w2" nz="1" size="5000,700,10" px="0" py="350" pz="-2500" repeat="1" texture="#555555"/>
+		<plane id="w3" nx="1" size="5000,700,10" px="0" py="350" px="2500" repeat="1" texture="#555555"/>
+		<plane id="w4" nx="1" size="5000,700,10" px="0" py="350" px="-2500" repeat="1" texture="#555555"/>
+
+		<plane id="caja" nx="1" size="600,600,600" px="1500" py="350" pz="1500" repeat="1" texture="#995555"/>
+		
+		<plane id="cosa" nx="1" size="600,600,600" px="1500" py="5000" pz="1500" repeat="1" texture="#ffffff"/>
 
 		<differentialrobot id="base" port="10004">
-			<translation id="robotGeometricCenter" tx="0" ty="0" tz="-285">
-				<mesh id="base_mesh" file="/home/robocomp/robocomp/files/osgModels/Gualzru/Gualzru.osg" scale="20" ty="10" ry="3.141592" rz="1.57" rx="-1.57" />
+			<translation id="robotGeometricCenter" tx="0" ty="0" tz="0">
+				<mesh id="rawOdometry_mesh" file="/home/robocomp/robocomp/files/osgModels/robex/platform.osg" scale="100" rx="1.57" />
 			</translation>
-			<translation id="laser_t" tx="0" ty="-200" tz="0" >
-				<laser id="laser" port="20000" measures="100" min="20" max="30000" angle="4.7123889"/>
+			<translation id="laser_t" tx="0" ty="300" tz="0" >
+				<laser id="laser" port="20000" measures="100" min="20" max="1000" angle="6.28"/>
 			</translation>
+			
+			<transform id="camArriba" ty="400" rx="-1.57">
+				<rgbd id="arriba" port="30000" focal="50" width="200" height="200" />
+			</transform>
+			<transform id="camAbajo" ty="52" tz="50" rx="1.57">
+				<rgbd id="abajo" port="30000" focal="50" width="400" height="100" />
+			</transform>
 		</differentialrobot>
-
-		<transform id="worldTemporalRef" />
 	</transform>
+
 </innerModel>
+

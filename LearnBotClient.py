@@ -1,15 +1,18 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import sys, traceback, Ice, os
+import sys, traceback, Ice, os, math
 import json
 from collections import namedtuple
+import numpy as np
 
 Ice.loadSlice("LearnBot.ice")
 Ice.loadSlice("DifferentialRobot.ice")
+Ice.loadSlice("-I. --all RGBD.ice")
 
 import LearnBotModule
 import RoboCompDifferentialRobot
+import RoboCompRGBD
 
 
 import signal
@@ -50,6 +53,12 @@ class Client(Ice.Application):
 		except:
 			print 'Cannot get LearnBotProxy property.'
 			self.realLearnbot = False
+		try:
+			abajoproxyString = ic.getProperties().getProperty('RGBDLearnBotProxy')
+			if len(abajoproxyString)<4: self.realLearnbot = False
+		except:
+			print 'Cannot get LearnBotProxy property.'
+			self.realLearnbot = False
 
 		if self.realLearnbot:
 			print 'real'
@@ -68,6 +77,19 @@ class Client(Ice.Application):
 				try:
 					baseStr = self.communicator().stringToProxy(proxyString)
 					self.differentialrobotPrx = RoboCompDifferentialRobot.DifferentialRobotPrx.checkedCast(baseStr)
+				except:
+					print 'Cannot connect to the remote object.'
+					sys.exit(1)
+			except:
+				print 'Cannot get DifferentialRobotProxy property.'
+				sys.exit(1)
+			# CONNECT TO SIMULATED ABAJO
+			try:
+				proxyString = ic.getProperties().getProperty('AbajoProxy')
+				print 'AbajoProxy:', proxyString
+				try:
+					baseStr = self.communicator().stringToProxy(proxyString)
+					self.abajoPrx = RoboCompRGBD.RGBDPrx.checkedCast(baseStr)
 				except:
 					print 'Cannot connect to the remote object.'
 					sys.exit(1)
@@ -126,56 +148,94 @@ class Client(Ice.Application):
 		return ret
 	
 	def getLines(self):
-		r =  self.sendCommand("?1?")
-		ret = dict()
+		if self.realLearnbot:
+			print 'real lines'
+			r =  self.sendCommand("?1?")
+			ret = dict()
 
-		left1 = LineData()
-		left1.value = r.LINE_LEFT_2.VAL
-		ret['LEFT1'] = left1
-		ret['IZQ1'] = left1
+			left1 = LineData()
+			left1.value = r.LINE_LEFT_2.VAL
+			ret['LEFT1'] = left1
+			ret['IZQ1'] = left1
 
-		right1 = LineData()
-		right1.value = r.LINE_RIGHT_2.VAL
-		ret['RIGHT1'] = right1
-		ret['DER1'] = right1
+			right1 = LineData()
+			right1.value = r.LINE_RIGHT_2.VAL
+			ret['RIGHT1'] = right1
+			ret['DER1'] = right1
 
-		left2 = LineData()
-		left2.value = r.LINE_LEFT_1.VAL
-		ret['LEFT2'] = left2
-		ret['IZQ2'] = left2
+			left2 = LineData()
+			left2.value = r.LINE_LEFT_1.VAL
+			ret['LEFT2'] = left2
+			ret['IZQ2'] = left2
 
-		right2 = LineData()
-		right2.value = r.LINE_RIGHT_1.VAL
-		ret['RIGHT2'] = right2
-		ret['DER2'] = right2
+			right2 = LineData()
+			right2.value = r.LINE_RIGHT_1.VAL
+			ret['RIGHT2'] = right2
+			ret['DER2'] = right2
 
-		return ret
+			return ret
+		else:
+			print 'sim lines'
+			rgbMatrix, distanceMatrix, hState, bState = self.abajoPrx.getData()
+			#print 'rgbMatrix', len(rgbMatrix)
+			a = np.fromstring(rgbMatrix, count=200*50*3, dtype=np.uint8).reshape((50, 200*3))
+			#print 'a.shape', a.shape
+			#print 'esperamos', 50*200*3
+			r = np.array_split(a, 4, axis=1)
+
+			ret = dict()
+
+			left1 = LineData()
+			left1.value = (np.sum(r[0])/(3*50*50))*4
+			#print left1.value
+			ret['LEFT1'] = left1
+			ret['IZQ1'] = left1
+
+			left2 = LineData()
+			left2.value = (np.sum(r[1])/(3*50*50))*4
+			#print left2.value
+			ret['LEFT2'] = left2
+			ret['IZQ2'] = left2
+
+			right2 = LineData()
+			right2.value = (np.sum(r[2])/(3*50*50))*4
+			#print right2.value
+			ret['RIGHT2'] = right2
+			ret['DER2'] = right2
+
+			right1 = LineData()
+			right1.value = (np.sum(r[3])/(3*50*50))*4
+			#print right1.value
+			ret['RIGHT1'] = right1
+			ret['DER1'] = right1
+
+			return ret
 
 	def getLDR(self):
-		r = self.sendCommand("?2?")
-		ret = dict()
+		if self.realLearnbot:
+			r = self.sendCommand("?2?")
+			ret = dict()
 
-		front = LightData()
-		front.value = r.LDR_FRONT.VAL
-		ret['FRONT'] = front
-		ret['DEL'] = front
+			front = LightData()
+			front.value = r.LDR_FRONT.VAL
+			ret['FRONT'] = front
+			ret['DEL'] = front
 
-		back = LightData()
-		back.value = r.LDR_BACK.VAL
-		ret['BACK'] = back
-		ret['TRA'] = back
+			back = LightData()
+			back.value = r.LDR_BACK.VAL
+			ret['BACK'] = back
+			ret['TRA'] = back
 
-		left = LightData()
-		left.value = r.LDR_LEFT.VAL
-		ret['LEFT'] = left
-		ret['IZQ'] = left
+			left = LightData()
+			left.value = r.LDR_LEFT.VAL
+			ret['LEFT'] = left
+			ret['IZQ'] = left
 
-		right = LightData()
-		right.value = r.LDR_RIGHT.VAL
-		ret['RIGHT'] = right
-		ret['DER'] = right
-
-		return ret
+			right = LightData()
+			right.value = r.LDR_RIGHT.VAL
+			ret['RIGHT'] = right
+			ret['DER'] = right
+			return ret
 
 	def setVel(self, rightVel, rightDir, leftVel, leftDir):
 		if self.realLearnbot:
@@ -192,12 +252,20 @@ class Client(Ice.Application):
 			speedReq += 'M'
 			return self.sendCommand(speedReq)
 		else:
-			R = float(rightVel)
+			K = 6./255.
+			R = float(rightVel)*2.*math.pi*10.*K
 			if rightDir < 0: R *= 1
-			L = float(leftVel)
+			L = float(leftVel)*2.*math.pi*10.*K
 			if leftDir < 0: L *= 1
 			avance = (L+R)/2
-			giro = (L-R)/((L+R)/2)
+			giro = (R-L)/500.
+			self.differentialrobotPrx.setSpeedBase(avance, giro)
+
+
+	def setSpeeds(self, avance, giro):
+		if self.realLearnbot:
+			pass
+		else:
 			self.differentialrobotPrx.setSpeedBase(avance, giro)
 		
 	def getImage(self, width=80, height=60):

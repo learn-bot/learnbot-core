@@ -9,6 +9,7 @@ class MiClase(LearnBotClient.Client):
 	def code(self):
 		self.setVel(0,1,0,1)
 
+
 miclase = MiClase()
 miclase.main(sys.argv)
 
